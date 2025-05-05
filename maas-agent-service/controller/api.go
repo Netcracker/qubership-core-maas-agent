@@ -59,7 +59,7 @@ c.Request().Header.Set(HTTP_X_ORIGIN_MICROSERVICE, "any_microservice")
 
 func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
 	return v.SecurityWrapper(fiberCtx, func(ctx context.Context) error {
-		logger.InfoC(ctx, "Proxy request: %v", fiberCtx)
+		logger.DebugC(ctx, "Proxy request: %v", fiberCtx)
 
 		requestUrl, err := url.Parse(v.MaasAddr)
 		if err != nil {
@@ -86,9 +86,6 @@ func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
 		if err != nil {
 			return respondWithError(ctx, fiberCtx, fiber.StatusInternalServerError, "error proxying request: "+err.Error())
 		}
-
-		logger.InfoC(ctx, "Request handled with response:", body)
-		logger.InfoC(ctx, "Request handled with response code: %d, body len: %d", code, len(body))
 		return respondWithBytes(fiberCtx, code, body)
 	})
 }
