@@ -1,6 +1,6 @@
 branches-template:
   - main: "{{ref-name}}-{{timestamp}}-{{run-number}}, {{ref-name}}-snapshot"
-  - "feature/*": "{{ref-name}}-{{timestamp}}-{{context.runNumber}}.{{dist-tag}}"
+  - "feature/*": "{{ref-name}}-{{timestamp}}-{{github.context.runNumber}}.{{dist-tag}}"
   - "release/*": "{{ref-name}}-{{timestamp}}-{{run-number}}.{{dist-tag}}"
   - "hotfix/*": "{{ref-name}}-{{timestamp}}-{{run-number}}"
   - "bugfix/*": "{{ref-name}}-{{timestamp}}-{{run-number}}"
