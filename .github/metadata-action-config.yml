@@ -1,9 +1,9 @@
 branches-template:
-  - main: "{{ref-name}}-{{timestamp}}-{{run_number}}, {{ref-name}}-snapshot"
-  - "feature/*": "{{ref-name}}-{{timestamp}}-{{run_id}}.{{dist-tag}}"
-  - "release/*": "{{ref-name}}-{{timestamp}}-{{run_number}}.{{dist-tag}}"
-  - "hotfix/*": "{{ref-name}}-{{timestamp}}-{{run_number}}"
-  - "bugfix/*": "{{ref-name}}-{{timestamp}}-{{run_number}}"
+  - main: "{{ref-name}}-{{timestamp}}-{{run-number}}, {{ref-name}}-snapshot"
+  - "feature/*": "{{ref-name}}-{{timestamp}}-{{run-number}}.{{dist-tag}}"
+  - "release/*": "{{ref-name}}-{{timestamp}}-{{run-number}}.{{dist-tag}}"
+  - "hotfix/*": "{{ref-name}}-{{timestamp}}-{{run-number}}"
+  - "bugfix/*": "{{ref-name}}-{{timestamp}}-{{run-number}}"
 
 distribution-tag:
   - main: "latest"
@@ -11,4 +11,4 @@ distribution-tag:
   - "feature/*": "beta"
   - tag: "stable"
 
-default-template: "{{ref-name}}-{{timestamp}}-{{run_number}}"
+default-template: "{{ref-name}}-{{timestamp}}-{{run-number}}"
