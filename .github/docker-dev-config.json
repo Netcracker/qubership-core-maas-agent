@@ -1,0 +1,10 @@
+{
+  "components" : [
+    {
+      "name": "qubership-core-maas-agent",
+      "file": "./Dockerfile",
+      "context": "."
+    }
+  ],
+  "platforms" : "linux/amd64"
+}

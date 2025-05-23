@@ -53,25 +53,11 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+    - name: Build And Publish Docker Images
+      uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@docker_build
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build and push core-image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
         tags: |
           ghcr.io/${{ needs.prepare-variables.outputs.repo }}:${{ needs.prepare-variables.outputs.tag_build_number }}
           ghcr.io/${{ needs.prepare-variables.outputs.repo }}:${{ needs.prepare-variables.outputs.tag_snapshot }}
-        platforms: linux/amd64
+        dry-run: false
+
