@@ -53,11 +53,12 @@ jobs:
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    - name: Build And Publish Docker Images
-      uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@docker_build
-      with:
-        tags: |
+  docker-build:
+    needs: prepare-variables
+    uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@docker_build
+    with:
+      tags: |
           ghcr.io/${{ needs.prepare-variables.outputs.repo }}:${{ needs.prepare-variables.outputs.tag_build_number }}
           ghcr.io/${{ needs.prepare-variables.outputs.repo }}:${{ needs.prepare-variables.outputs.tag_snapshot }}
-        dry-run: false
+      dry-run: false
 
