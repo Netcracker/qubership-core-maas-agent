@@ -4,19 +4,6 @@ on:
   push:
 
 jobs:
-  prepare-variables:
-    runs-on: ubuntu-latest
-    steps:
-      - id: tag_build_number
-        run: echo "tag=$(echo ${{github.ref_name}} | tr -cs 'a-zA-Z0-9' '-')$(date +'%Y%m%d%H%M%S')-${{ github.run_number }}" >> $GITHUB_OUTPUT
-      - id: tag_snapshot
-        run: echo "tag=$(echo ${{github.ref_name}} | tr -cs 'a-zA-Z0-9' '-')snapshot" >> $GITHUB_OUTPUT
-      - id: repo
-        run: echo "repo=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
-    outputs:
-      tag_build_number: ${{ steps.tag_build_number.outputs.tag }}
-      tag_snapshot: ${{ steps.tag_snapshot.outputs.tag }}
-      repo: ${{ steps.repo.outputs.repo }}
   build:
     runs-on: ubuntu-latest
     needs: prepare-variables
@@ -57,6 +44,5 @@ jobs:
     needs: prepare-variables
     uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@docker_build
     with:
-      tags: ${{ needs.prepare-variables.outputs.tag_build_number }}, ${{ needs.prepare-variables.outputs.tag_snapshot }}
       dry-run: false
 

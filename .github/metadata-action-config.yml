@@ -1,0 +1,14 @@
+branches-template:
+  - main: "{{ref-name}}-{{timestamp}}-{{runNumber}}, {{ref-name}}-snapshot"
+  - feature/*: "feature-{{ref-name}}-{{timestamp}}-{{runNumber}}.{{dist-tag}}"
+  - release/*: "release-{{ref-name}}-{{timestamp}}-{{runNumber}}.{{dist-tag}}"
+  - hotfix/*: "{{ref-name}}-{{timestamp}}-{{runNumber}}"
+  - bugfix/*: "{{ref-name}}-{{timestamp}}-{{runNumber}}"
+
+distribution-tag:
+  - main: "latest"
+  - "release/*": "next"
+  - "feature/*": "beta"
+  - tag: "stable"
+
+default-template: "{{ref-name}}-{{timestamp}}-{{runNumber}}"
