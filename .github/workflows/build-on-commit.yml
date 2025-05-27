@@ -37,7 +37,7 @@ jobs:
 
   docker-build:
     needs: [build]
-    uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@feature/docker_build
+    uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@main
     with:
       dry-run: false
 
