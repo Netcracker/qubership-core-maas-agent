@@ -36,7 +36,8 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker-build:
-    uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@main
+    needs: [build]
+    uses: netcracker/qubership-core-infra/.github/workflows/docker-build.yaml@feature/docker_build
     with:
       dry-run: false
 
