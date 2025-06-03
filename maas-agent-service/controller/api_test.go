@@ -17,7 +17,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	_assert "github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
-
 )
 
 var (
