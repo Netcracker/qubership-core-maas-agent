@@ -14,10 +14,9 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	_assert "github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
-
 )
 
 var (
