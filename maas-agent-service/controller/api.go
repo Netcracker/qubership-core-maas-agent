@@ -7,7 +7,7 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/httputils"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
 
 	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
@@ -28,7 +28,6 @@ type ApiHttpHandler struct {
 }
 
 type DummySecurityWrapper struct {
-
 }
 
 type SecurityWrapperProvider interface {
@@ -53,7 +52,7 @@ func (s *DummySecurityWrapper) GetHandler(c *fiber.Ctx, handler func(context.Con
 	ctx := c.UserContext()
 	c.Request().Header.Set(HTTP_X_ORIGIN_NAMESPACE, namespace)
 	logger.WarnC(ctx, "Use 'any_microservice' name as %v", HTTP_X_ORIGIN_MICROSERVICE)
-c.Request().Header.Set(HTTP_X_ORIGIN_MICROSERVICE, "any_microservice")
+	c.Request().Header.Set(HTTP_X_ORIGIN_MICROSERVICE, "any_microservice")
 	return handler(ctx)
 }
 
@@ -109,4 +108,3 @@ func respondWithBytes(ctx *fiber.Ctx, code int, response []byte) error {
 	ctx.Response().Header.SetContentType("application/json")
 	return ctx.Status(code).Send(response)
 }
-
