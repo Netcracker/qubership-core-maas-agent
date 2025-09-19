@@ -85,6 +85,8 @@ func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
 		if err != nil {
 			return respondWithError(ctx, fiberCtx, fiber.StatusInternalServerError, "error proxying request: "+err.Error())
 		}
+		logger.DebugC(ctx, "Request handled with response:", body)
+		
 		return respondWithBytes(fiberCtx, code, body)
 	})
 }
