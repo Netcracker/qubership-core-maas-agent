@@ -14,7 +14,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 go build -a -o app
 
 
-FROM ghcr.io/netcracker/qubership/core-base:1.2.0
+FROM ghcr.io/netcracker/qubership/core-base:1.2.2
 
 COPY --from=builder --chown=10001:0 --chmod=755 /src/maas-agent-service/app /app/maas-agent
 COPY --chown=10001:0 maas-agent-service/application.yaml /app/
