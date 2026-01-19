@@ -4,6 +4,7 @@ CLOUD_TOPOLOGY_KEY: kubernetes.io/hostname
 READONLY_CONTAINER_FILE_SYSTEM_ENABLED: false
 
 # ============== SERVICE VARIABLES ============================
+SERVICE_NAME: 'maas-agent'
 LOG_LEVEL: "info"
 TRACING_ENABLED: false
 TRACING_HOST: 'nc-diagnostic-agent'

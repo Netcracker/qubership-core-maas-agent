@@ -1,2 +1,1 @@
-{{ include "coretpl.bootstrap.hooks" (dict "values" . "k8sServiceType" .Values.K8S_SERVICE_TYPE) }}
 {{ include "coretpl.synchronizer.hooks" . }}
