@@ -4,8 +4,8 @@ go 1.25.6
 
 require (
 	github.com/fasthttp/websocket v1.5.12
-	github.com/gofiber/fiber/v2 v2.52.10
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/gofiber/fiber/v2 v2.52.11
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.2.3
 	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.2.3
