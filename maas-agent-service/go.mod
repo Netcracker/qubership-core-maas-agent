@@ -1,6 +1,6 @@
 module github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2
 
-go 1.25.6
+go 1.25.7
 
 require (
 	github.com/fasthttp/websocket v1.5.12
