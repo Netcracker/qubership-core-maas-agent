@@ -56,9 +56,6 @@ spec:
         spec:
             serviceAccountName: '{{ .Values.SERVICE_NAME }}'
             volumes:
-                - name: client-credentials
-                  secret:
-                      secretName: "{{ .Values.SERVICE_NAME }}-client-credentials"
 {{ if and .Values.READONLY_CONTAINER_FILE_SYSTEM_ENABLED (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
                 - name: sslcerts
                   emptyDir: {}
