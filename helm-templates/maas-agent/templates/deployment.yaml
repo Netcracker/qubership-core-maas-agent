@@ -56,12 +56,12 @@ spec:
         spec:
             serviceAccountName: '{{ .Values.SERVICE_NAME }}'
             volumes:
-{{ if and .Values.READONLY_CONTAINER_FILE_SYSTEM_ENABLED (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
-                - name: sslcerts
-                  emptyDir: {}
-                - name: cacerts
-                  emptyDir: {}
-{{ end }}
+  {{ if and .Values.READONLY_CONTAINER_FILE_SYSTEM_ENABLED (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
+            -   name: sslcerts
+                emptyDir: {}
+            -   name: cacerts
+                emptyDir: {}
+  {{ end }}
             containers:
                 - name: "{{ .Values.SERVICE_NAME }}"
                   image: "{{ .Values.IMAGE_REPOSITORY}}:{{ .Values.TAG }}"
@@ -148,9 +148,6 @@ spec:
                           drop:
                             - ALL
                   volumeMounts:
-                      - name: client-credentials
-                        mountPath: "/etc/secret"
-                        readOnly: true
 {{ if and .Values.READONLY_CONTAINER_FILE_SYSTEM_ENABLED (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
                       - name: sslcerts
                         mountPath: /etc/ssl/certs
