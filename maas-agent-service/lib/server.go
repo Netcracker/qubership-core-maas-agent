@@ -143,12 +143,12 @@ func RunServer() {
 		WithLogLevelsInfo().
 		ProcessWithContext(ctx)
 	if err != nil {
-		logger.ErrorC(ctx, "Error while create app because: "+err.Error())
+		logger.ErrorC(ctx, "Error while create app because: %s", err.Error())
 		return
 	}
 
 	var requestHandler func(*fiber.Ctx) error
-	logger.InfoC(ctx, "Initialize agent with MAAS_ENABLED=%s, DR_MODE=%s", maasService.MaasEnabled, maasService.DrMode)
+	logger.InfoC(ctx, "Initialize agent with MAAS_ENABLED=%t, DR_MODE=%s", maasService.MaasEnabled, maasService.DrMode)
 	if maasService.MaasEnabled {
 		// disaster recovery check
 		if maasService.DrMode == "active" {

@@ -43,7 +43,7 @@ func (s MaaSService) SendActiveTenants(ctx context.Context, tenants string) erro
 		Execute(ctx)
 
 	if err != nil {
-		err = fmt.Errorf("error sending maas list of active tenants: %w", err)
+		err = fmt.Errorf("error sending maas list of active tenants: %v", err)
 		log.ErrorC(ctx, err.Error())
 		return err
 	}
@@ -54,7 +54,7 @@ func (s MaaSService) SendActiveTenants(ctx context.Context, tenants string) erro
 		return nil
 	default:
 		err := fmt.Errorf("unexpected status code in response: expected %v, but got %v, body: %s", http.StatusOK, code, body)
-		log.ErrorC(ctx, err.Error())
+		log.ErrorC(ctx, "%s", err.Error())
 		return err
 	}
 }
@@ -115,7 +115,7 @@ func (s MaaSService) SynchronizeTenantsToMaaS(ctx context.Context) {
 	}
 
 	if err := s.SendActiveTenants(ctx, tenantsStr); err != nil {
-		log.PanicC(ctx, "Error sending tenant list to maas: %w", err)
+		log.PanicC(ctx, "Error sending tenant list to maas: %v", err)
 	}
 
 	log.InfoC(ctx, "Successfully synchronize tenants with maas")
