@@ -44,7 +44,7 @@ func (s MaaSService) SendActiveTenants(ctx context.Context, tenants string) erro
 
 	if err != nil {
 		err = fmt.Errorf("error sending maas list of active tenants: %v", err)
-		log.ErrorC(ctx, err.Error())
+		log.ErrorC(ctx, "%s", err.Error())
 		return err
 	}
 
