@@ -15,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o ap
 
 
 
-FROM ghcr.io/netcracker/qubership-core-base:2.2.8
+FROM ghcr.io/netcracker/qubership-core-base:2.2.9
 
 COPY --from=builder --chown=10001:0 --chmod=755 /src/maas-agent-service/app /app/maas-agent
 COPY --chown=10001:0 maas-agent-service/application.yaml /app/
