@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.6.0
 	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.5.5
-	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.4.4
+	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.5.0
 	github.com/netcracker/qubership-core-lib-go/v3 v3.8.0
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.69.0
@@ -29,7 +29,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gofiber/adaptor/v2 v2.2.1 // indirect
-	github.com/hashicorp/consul/api v1.33.5 // indirect
+	github.com/hashicorp/consul/api v1.34.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
