@@ -520,6 +520,22 @@
       ],
       "internal": true,
       "title": "The HPA_SCALING_UP_STABILIZATION_WINDOW_SECONDS scheme"
+    },
+    "SERVICE_MESH_TYPE": {
+      "$id": "#/properties/SERVICE_MESH_TYPE",
+      "type": "string",
+      "title": "The SERVICE_MESH_TYPE schema",
+      "description": "Type of service mesh. Allowed values: 'Istio' or 'Core to disable'.",
+      "enum": ["Istio", "Core to disable"],
+      "default": "Istio",
+      "internal": true
+    },
+    "INTERNAL_SERVICE_NAME": {
+      "$id": "#/properties/INTERNAL_SERVICE_NAME",
+      "type": "string",
+      "title": "The INTERNAL_SERVICE_NAME schema",
+      "description": "Internal gateway service name.",
+      "internal": true
     }
   },
   "additionalProperties": true
