@@ -10,7 +10,7 @@ require (
 	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.6.1
 	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.5.6
 	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.5.1
-	github.com/netcracker/qubership-core-lib-go/v3 v3.8.1
+	github.com/netcracker/qubership-core-lib-go/v3 v3.9.0
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.69.0
 )
