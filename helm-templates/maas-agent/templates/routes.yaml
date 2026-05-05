@@ -4,11 +4,13 @@ kind: HTTPRoute
 metadata:
   name: '{{ .Values.SERVICE_NAME }}-internal-routes'
   labels:
-    app.kubernetes.io/name: '{{ .Values.SERVICE_NAME }}-internal-routes'
-    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
-    app.kubernetes.io/component: gateway-routes
-    app.kubernetes.io/part-of: {{ .Values.SERVICE_NAME }}
-    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: '{{ printf "%s-internal-routes" .Values.SERVICE_NAME }}'
+    app.kubernetes.io/instance: '{{ printf "%s-internal-routes-%s" .Values.SERVICE_NAME .Values.NAMESPACE | trunc 63 | trimSuffix "-" }}'
+    app.kubernetes.io/version: '{{ .Chart.AppVersion }}'
+    app.kubernetes.io/component: '{{ .Values.SERVICE_NAME }}'
+    app.kubernetes.io/part-of: 'Cloud-Core'
+    app.kubernetes.io/managed-by: 'Helm'
+    app.kubernetes.io/processed-by-operator: 'istiod'
 spec:
   parentRefs:
     - kind: Service
