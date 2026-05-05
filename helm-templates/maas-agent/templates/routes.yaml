@@ -8,7 +8,7 @@ metadata:
   name: '{{ .Values.SERVICE_NAME }}-internal-routes'
   labels:
     app.kubernetes.io/name: '{{ .Values.SERVICE_NAME }}-internal-routes'
-    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
     app.kubernetes.io/component: gateway-routes
     app.kubernetes.io/part-of: {{ .Values.SERVICE_NAME }}
     app.kubernetes.io/managed-by: Helm
