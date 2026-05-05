@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maas-agent-expected-routes
+data:
+  routes.json: |
+    {
+      "internal": [
+        "/api/v1/maas-agent/config"
+      ]
+    }
