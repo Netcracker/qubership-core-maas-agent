@@ -1,7 +1,4 @@
 {{- if eq .Values.SERVICE_MESH_TYPE "Istio" }}
-{{ $ServiceName := .Values.SERVICE_NAME }}
-{{ $ServiceName := eq .Values.K8S_SERVICE_TYPE "HEADLESS" | ternary (printf "%s-clusterip" $ServiceName) $ServiceName }}
-
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -30,7 +27,7 @@ spec:
               type: ReplacePrefixMatch
               replacePrefixMatch: "/api/v1/"
       backendRefs:
-        - name: {{ $ServiceName}}
+        - name: {{ .Values.SERVICE_NAME }}
           port: 8080
 
 {{- end }}

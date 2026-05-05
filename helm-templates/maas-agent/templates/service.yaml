@@ -15,25 +15,6 @@ spec:
         targetPort: 8080
   selector:
     name: '{{ .Values.SERVICE_NAME }}'
-  {{ if  eq .Values.K8S_SERVICE_TYPE "HEADLESS" }}
+  {{ if and (eq .Values.K8S_SERVICE_TYPE "HEADLESS") (eq .Values.SERVICE_MESH_TYPE "Core") }}
   clusterIP: None
   {{ end }}
-{{ if  eq .Values.K8S_SERVICE_TYPE "HEADLESS" }}
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: '{{ .Values.SERVICE_NAME }}-clusterip''
-  labels:
-    name: '{{ .Values.SERVICE_NAME }}'
-    app.kubernetes.io/name: '{{ .Values.SERVICE_NAME }}'
-    app.kubernetes.io/part-of: 'Cloud-Core'
-    app.kubernetes.io/managed-by: 'saasDeployer'
-spec:
-  ports:
-    -   name: web
-        port: 8080
-        targetPort: 8080
-  selector:
-    name: '{{ .Values.SERVICE_NAME }}'
-{{ end }}
