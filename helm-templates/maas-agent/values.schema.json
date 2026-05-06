@@ -525,9 +525,9 @@
       "$id": "#/properties/SERVICE_MESH_TYPE",
       "type": "string",
       "title": "The SERVICE_MESH_TYPE schema",
-      "description": "Type of service mesh. Allowed values: 'Istio' or 'Core' to disable.",
+      "description": "Service mesh type. Use `Core` for Cloud Core Mesh or `Istio` for Istio Ambient Mesh.",
       "enum": ["Istio", "Core"],
-      "default": "Istio",
+      "default": "Core",
       "internal": true
     },
     "INTERNAL_SERVICE_NAME": {
