@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -91,9 +92,9 @@ public class ExpectedRoutesIT {
         log.info("Internal gateway URL: {}", internalGateway);
         log.info("Public gateway URL: {}", publicGateway);
         log.info("Test namespace: {}", namespace);
-        log.info("Loaded {} routes for internal gateway", expectedRoutesMap.get("internal").size());
-        log.info("Loaded {} routes for public gateway", expectedRoutesMap.get("public").size());
-        log.info("Loaded {} routes for private gateway", expectedRoutesMap.get("private").size());
+        log.info("Loaded {} routes for internal gateway", expectedRoutesMap.getOrDefault("internal", Collections.emptyList()).size());
+        log.info("Loaded {} routes for public gateway", expectedRoutesMap.getOrDefault("public", Collections.emptyList()).size());
+        log.info("Loaded {} routes for private gateway", expectedRoutesMap.getOrDefault("private", Collections.emptyList()).size());
     }
 
     private static String executeInClusterPod(String... command) throws Exception {
