@@ -520,6 +520,22 @@
       ],
       "internal": true,
       "title": "The HPA_SCALING_UP_STABILIZATION_WINDOW_SECONDS scheme"
+    },
+    "SERVICE_MESH_TYPE": {
+      "$id": "#/properties/SERVICE_MESH_TYPE",
+      "type": "string",
+      "title": "The SERVICE_MESH_TYPE schema",
+      "description": "Service mesh type. Use `Core` for Cloud Core Mesh or `Istio` for Istio Ambient Mesh.",
+      "enum": ["Istio", "Core"],
+      "default": "Core",
+      "internal": true
+    },
+    "INTERNAL_SERVICE_NAME": {
+      "$id": "#/properties/INTERNAL_SERVICE_NAME",
+      "type": "string",
+      "title": "The INTERNAL_SERVICE_NAME schema",
+      "description": "Internal gateway service name.",
+      "internal": true
     }
   },
   "additionalProperties": true

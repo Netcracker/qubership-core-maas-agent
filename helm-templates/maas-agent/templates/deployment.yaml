@@ -114,6 +114,8 @@ spec:
                             secretKeyRef:
                                 name: "cluster-{{ .Values.SERVICE_NAME }}-credentials-secret"
                                 key: password
+                      - name: SERVICE_MESH_TYPE
+                        value: '{{ .Values.SERVICE_MESH_TYPE }}'
                   resources:
                       requests:
                           cpu: "{{ .Values.CPU_REQUEST }}"
