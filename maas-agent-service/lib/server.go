@@ -21,7 +21,8 @@ import (
 	"github.com/netcracker/qubership-core-lib-go-actuator-common/v2/tracing"
 	fiberserver "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2"
 	"github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2/server"
-	"github.com/netcracker/qubership-core-lib-go-rest-utils/v2/consul-propertysource"
+	consul "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/consul-propertysource"
+	podsecrets "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/podsecrets-propertysource"
 	routeregistration "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/route-registration"
 	"github.com/netcracker/qubership-core-lib-go/v3/configloader"
 	constants "github.com/netcracker/qubership-core-lib-go/v3/const"
@@ -38,7 +39,9 @@ var (
 
 func init() {
 	consulPS := consul.NewLoggingPropertySource()
-	propertySources := consul.AddConsulPropertySource(configloader.BasePropertySources())
+	propertySources := configloader.BasePropertySources()
+	propertySources = podsecrets.AddPodSecretsPropertySource(propertySources)
+	propertySources = consul.AddConsulPropertySource(propertySources)
 	configloader.InitWithSourcesArray(append(propertySources, consulPS))
 	consul.StartWatchingForPropertiesWithRetry(context.Background(), consulPS, func(event interface{}, err error) {})
 }
@@ -123,6 +126,13 @@ func iif[T any](clause bool, onTrue T, onFalse T) T {
 }
 
 func RunServer() {
+	var podSecretsWatcherStop func()
+	if podSecretsWatcher, err := podsecrets.StartWatcher(); err != nil {
+		logger.Warn("Pod-secrets watcher could not start: %v", err)
+	} else {
+		podSecretsWatcherStop = podSecretsWatcher.Stop
+	}
+
 	maasService := initConfiguration(ctx)
 	healthService, err := health.NewHealthService()
 	if err != nil {
@@ -180,6 +190,9 @@ func RunServer() {
 	app.Get("/api-version", requestHandler)
 
 	registerShutdownHook(func(code int) {
+		if podSecretsWatcherStop != nil {
+			podSecretsWatcherStop()
+		}
 		// We received an interrupt signal, shut down.
 		if err := app.Shutdown(); err != nil {
 			// Error from closing listeners, or context timeout:
