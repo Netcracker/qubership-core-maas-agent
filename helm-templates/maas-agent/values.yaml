@@ -1,7 +1,7 @@
 # ============== DEPLOYMENT VARIABLES ============================
 MONITORING_ENABLED: true
 CLOUD_TOPOLOGY_KEY: kubernetes.io/hostname
-READONLY_CONTAINER_FILE_SYSTEM_ENABLED: false
+READONLY_CONTAINER_FILE_SYSTEM_ENABLED: true
 
 # ============== SERVICE VARIABLES ============================
 SERVICE_NAME: 'maas-agent'
