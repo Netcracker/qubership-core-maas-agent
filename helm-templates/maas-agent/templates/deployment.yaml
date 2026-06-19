@@ -62,6 +62,16 @@ spec:
             -   name: cacerts
                 emptyDir: {}
   {{ end }}
+            -   name: pod-secrets
+                projected:
+                    sources:
+                    -   secret:
+                            name: "cluster-{{ .Values.SERVICE_NAME }}-credentials-secret"
+                            items:
+                            -   key: username
+                                path: MAAS_AGENT_CREDENTIALS_USERNAME
+                            -   key: password
+                                path: MAAS_AGENT_CREDENTIALS_PASSWORD
             containers:
                 - name: "{{ .Values.SERVICE_NAME }}"
                   image: "{{ .Values.IMAGE_REPOSITORY}}:{{ .Values.TAG }}"
@@ -104,16 +114,6 @@ spec:
                       - name: CONSUL_URL
                         value: '{{ .Values.CONSUL_URL }}'
                         {{ end }}
-                      - name: MAAS_AGENT_CREDENTIALS_USERNAME
-                        valueFrom:
-                            secretKeyRef:
-                                name: "cluster-{{ .Values.SERVICE_NAME }}-credentials-secret"
-                                key: username
-                      - name: MAAS_AGENT_CREDENTIALS_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: "cluster-{{ .Values.SERVICE_NAME }}-credentials-secret"
-                                key: password
                       - name: SERVICE_MESH_TYPE
                         value: '{{ .Values.SERVICE_MESH_TYPE }}'
                   resources:
@@ -156,6 +156,9 @@ spec:
                       - name: cacerts
                         mountPath: /usr/local/share/ca-certificates
 {{ end }}
+                      - name: pod-secrets
+                        mountPath: /etc/secrets/pod-secrets
+                        readOnly: true
             topologySpreadConstraints:
 {{- if .Values.CLOUD_TOPOLOGIES }}
 {{- range $v := .Values.CLOUD_TOPOLOGIES }}
