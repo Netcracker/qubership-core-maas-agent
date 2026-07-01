@@ -135,6 +135,8 @@ spec:
                         {{ end }}
                       - name: SERVICE_MESH_TYPE
                         value: '{{ .Values.SERVICE_MESH_TYPE }}'
+                      - name: KUBERNETES_M2M_ENABLED
+                        value: '{{ .Values.KUBERNETES_M2M_ENABLED }}'
                   resources:
                       requests:
                           cpu: "{{ .Values.CPU_REQUEST }}"
