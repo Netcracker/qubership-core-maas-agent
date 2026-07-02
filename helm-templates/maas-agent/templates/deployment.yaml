@@ -171,12 +171,12 @@ spec:
                           drop:
                             - ALL
                   volumeMounts:
-                -   name: projected-tokens
-                    mountPath: /var/run/secrets/tokens
-                    readOnly: true
-                -   name: topology
-                    mountPath: /etc/topology
-                    readOnly: true
+                      - name: projected-tokens
+                        mountPath: /var/run/secrets/tokens
+                        readOnly: true
+                      - name: topology
+                        mountPath: /etc/topology
+                        readOnly: true
 {{ if and .Values.READONLY_CONTAINER_FILE_SYSTEM_ENABLED (eq .Values.PAAS_PLATFORM "KUBERNETES") }}
                       - name: sslcerts
                         mountPath: /etc/ssl/certs
