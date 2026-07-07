@@ -7,9 +7,9 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.14
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
-	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.10.2
-	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.9.2
-	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.7.1
+	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.10.4
+	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.9.4
+	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.7.3
 	github.com/netcracker/qubership-core-lib-go/v3 v3.13.0
 	github.com/stretchr/testify v1.11.1
 	github.com/valyala/fasthttp v1.71.0
