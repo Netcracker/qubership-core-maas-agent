@@ -6,7 +6,7 @@ import (
 
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/httputils"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
 
@@ -31,7 +31,7 @@ type DummySecurityWrapper struct {
 }
 
 type SecurityWrapperProvider interface {
-	GetHandler(c *fiber.Ctx, handler func(context.Context) error, namespace string, validator func(ctx context.Context, token string) (*jwt.Token, error)) error
+	GetHandler(c fiber.Ctx, handler func(context.Context) error, namespace string, validator func(ctx context.Context, token string) (*jwt.Token, error)) error
 }
 
 var (
@@ -43,20 +43,20 @@ func init() {
 	serviceloader.Register(1, &DummySecurityWrapper{})
 }
 
-func (v *ApiHttpHandler) SecurityWrapper(c *fiber.Ctx, handler func(context.Context) error) error {
+func (v *ApiHttpHandler) SecurityWrapper(c fiber.Ctx, handler func(context.Context) error) error {
 	wrapper := serviceloader.MustLoad[SecurityWrapperProvider]()
 	return wrapper.GetHandler(c, handler, v.Namespace, v.TokenValidator)
 }
 
-func (s *DummySecurityWrapper) GetHandler(c *fiber.Ctx, handler func(context.Context) error, namespace string, validator func(ctx context.Context, token string) (*jwt.Token, error)) error {
-	ctx := c.UserContext()
+func (s *DummySecurityWrapper) GetHandler(c fiber.Ctx, handler func(context.Context) error, namespace string, validator func(ctx context.Context, token string) (*jwt.Token, error)) error {
+	ctx := c.Context()
 	c.Request().Header.Set(HTTP_X_ORIGIN_NAMESPACE, namespace)
 	logger.WarnC(ctx, "Use 'any_microservice' name as %v", HTTP_X_ORIGIN_MICROSERVICE)
 	c.Request().Header.Set(HTTP_X_ORIGIN_MICROSERVICE, "any_microservice")
 	return handler(ctx)
 }
 
-func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
+func (v *ApiHttpHandler) ProcessRequest(fiberCtx fiber.Ctx) error {
 	return v.SecurityWrapper(fiberCtx, func(ctx context.Context) error {
 		logger.DebugC(ctx, "Proxy request: %v", fiberCtx)
 
@@ -65,9 +65,9 @@ func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
 			return respondWithError(ctx, fiberCtx, fiber.StatusInternalServerError, err.Error())
 		}
 		requestUrl.Path = fiberCtx.Path()
-		requestUrl.RawQuery = fiberCtx.Context().QueryArgs().String()
+		requestUrl.RawQuery = fiberCtx.RequestCtx().QueryArgs().String()
 
-		req := v.BasicRequestCreator(string(fiberCtx.Context().Method()), requestUrl.String()).
+		req := v.BasicRequestCreator(string(fiberCtx.RequestCtx().Method()), requestUrl.String()).
 			SetRequestBodyBytes(fiberCtx.Request().Body())
 
 		fiberCtx.Request().Header.VisitAll(func(key, value []byte) {
@@ -89,22 +89,22 @@ func (v *ApiHttpHandler) ProcessRequest(fiberCtx *fiber.Ctx) error {
 	})
 }
 
-func respondWithError(ctx context.Context, c *fiber.Ctx, code int, msg string) error {
+func respondWithError(ctx context.Context, c fiber.Ctx, code int, msg string) error {
 	return respondWithJson(ctx, c, code, map[string]string{"error": msg})
 }
 
-func RespondWithError(ctx context.Context, c *fiber.Ctx, code int, msg string) error {
+func RespondWithError(ctx context.Context, c fiber.Ctx, code int, msg string) error {
 	return respondWithJson(ctx, c, code, map[string]string{"error": msg})
 }
 
-func respondWithJson(ctx context.Context, c *fiber.Ctx, code int, payload interface{}) error {
+func respondWithJson(ctx context.Context, c fiber.Ctx, code int, payload interface{}) error {
 	c.Response().Header.SetContentType("application/json")
 	logger.DebugC(ctx, "Send response code: %v, body: %+v", code, payload)
 	return c.Status(code).JSON(payload)
 }
 
-func respondWithBytes(ctx *fiber.Ctx, code int, response []byte) error {
-	logger.DebugC(ctx.UserContext(), "Send response code: %v, body: %v", code, string(response))
+func respondWithBytes(ctx fiber.Ctx, code int, response []byte) error {
+	logger.DebugC(ctx.Context(), "Send response code: %v, body: %v", code, string(response))
 	ctx.Response().Header.SetContentType("application/json")
 	return ctx.Status(code).Send(response)
 }
