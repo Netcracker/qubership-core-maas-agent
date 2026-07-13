@@ -1,7 +1,7 @@
 package config
 
 import (
-	fiberSec "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2/security"
+	fiberSec "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v3/security"
 	"github.com/netcracker/qubership-core-lib-go/v3/security"
 	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
 )

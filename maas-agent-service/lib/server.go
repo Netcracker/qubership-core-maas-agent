@@ -16,11 +16,11 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/maasservice"
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/netcracker/qubership-core-lib-go-actuator-common/v2/health"
 	"github.com/netcracker/qubership-core-lib-go-actuator-common/v2/tracing"
-	fiberserver "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2"
-	"github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2/server"
+	fiberserver "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v3"
+	"github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v3/server"
 	consul "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/consul-propertysource"
 	podsecrets "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/podsecrets-propertysource"
 	routeregistration "github.com/netcracker/qubership-core-lib-go-rest-utils/v2/route-registration"
@@ -140,7 +140,6 @@ func RunServer() {
 	}
 
 	fiberCfg := fiber.Config{
-		Network:      fiber.NetworkTCP,
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  130 * time.Second,
@@ -157,7 +156,7 @@ func RunServer() {
 		return
 	}
 
-	var requestHandler func(*fiber.Ctx) error
+	var requestHandler func(fiber.Ctx) error
 	logger.InfoC(ctx, "Initialize agent with MAAS_ENABLED=%t, DR_MODE=%s", maasService.MaasEnabled, maasService.DrMode)
 	if maasService.MaasEnabled {
 		// disaster recovery check
@@ -181,7 +180,7 @@ func RunServer() {
 		requestHandler = apiController.ProcessRequest
 	} else {
 		logger.WarnC(ctx, "MAAS_ENABLED property is set to `false'. Starting in stub mode")
-		requestHandler = func(c *fiber.Ctx) error {
+		requestHandler = func(c fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusBadGateway, "Environment variable MAAS_ENABLED=false or was not set during deployment, MaaS agent is working in stub mode")
 		}
 	}
@@ -204,7 +203,7 @@ func RunServer() {
 		exitCode.Store(int32(code))
 	})
 
-	server.StartServer(app, "http.server.bind")
+	server.StartServer(app, "http.server.bind", fiber.ListenConfig{ListenerNetwork: fiber.NetworkTCP})
 
 	logger.InfoC(ctx, "maas-agent server gracefully finished")
 	os.Exit(int(exitCode.Load()))
