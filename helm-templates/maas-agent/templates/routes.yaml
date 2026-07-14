@@ -31,5 +31,8 @@ spec:
       backendRefs:
         - name: {{ .Values.SERVICE_NAME }}
           port: 8080
+          kind: Service
+          group: ""
+          weight: 1
 
 {{- end }}
