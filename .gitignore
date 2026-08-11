@@ -9,4 +9,4 @@
 /maas-agent-integration-tests/bin
 /maas-agent-integration-tests/*.iml
 /maas-agent-integration-tests/go.sum
-/maas-agent-integration-tests/target
+**/target/
