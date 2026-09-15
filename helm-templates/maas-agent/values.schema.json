@@ -344,6 +344,34 @@
       "title": "The CONSUL_URL schema",
       "description": "Consul address"
     },
+    "CONSUL_AUTH_MODE": {
+      "$id": "#/properties/CONSUL_AUTH_MODE",
+      "type": "string",
+      "title": "The CONSUL_AUTH_MODE schema",
+      "description": "Way the Consul ACL token is obtained: kubernetes-with-m2m-fallback, kubernetes or m2m. Empty means the library default",
+      "envSpecific": true
+    },
+    "CONSUL_AUTH_METHOD": {
+      "$id": "#/properties/CONSUL_AUTH_METHOD",
+      "type": "string",
+      "title": "The CONSUL_AUTH_METHOD schema",
+      "description": "Name of the Consul auth method the projected Kubernetes token is presented to. Empty means the library default",
+      "envSpecific": true
+    },
+    "CONSUL_AUTH_AUDIENCE": {
+      "$id": "#/properties/CONSUL_AUTH_AUDIENCE",
+      "type": "string",
+      "title": "The CONSUL_AUTH_AUDIENCE schema",
+      "description": "Audience of the projected Kubernetes token the pod sends. Empty means the library default",
+      "envSpecific": true
+    },
+    "CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL": {
+      "$id": "#/properties/CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL",
+      "type": "string",
+      "title": "The CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL schema",
+      "description": "How long the m2m fallback lasts before the Kubernetes login is retried. Empty means the library default",
+      "envSpecific": true
+    },
     "HPA_ENABLED": {
       "$id": "#/properties/HPA_ENABLED",
       "$ref": "#/definitions/booleanOrString",

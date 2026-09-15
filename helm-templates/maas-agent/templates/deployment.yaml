@@ -133,6 +133,14 @@ spec:
                       - name: CONSUL_URL
                         value: '{{ .Values.CONSUL_URL }}'
                         {{ end }}
+                      - name: CONSUL_AUTH_MODE
+                        value: '{{ .Values.CONSUL_AUTH_MODE }}'
+                      - name: CONSUL_AUTH_METHOD
+                        value: '{{ .Values.CONSUL_AUTH_METHOD }}'
+                      - name: CONSUL_AUTH_AUDIENCE
+                        value: '{{ .Values.CONSUL_AUTH_AUDIENCE }}'
+                      - name: CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL
+                        value: '{{ .Values.CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL }}'
                       - name: SERVICE_MESH_TYPE
                         value: '{{ .Values.SERVICE_MESH_TYPE }}'
                       - name: KUBERNETES_M2M_ENABLED
