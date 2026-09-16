@@ -369,7 +369,7 @@
       "$id": "#/properties/CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL",
       "type": "string",
       "title": "The CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL schema",
-      "description": "How long the m2m fallback lasts before the Kubernetes login is retried. Empty means the library default",
+      "description": "Lower bound on how often the m2m fallback retries the Kubernetes login. Empty means the library default",
       "envSpecific": true
     },
     "HPA_ENABLED": {
