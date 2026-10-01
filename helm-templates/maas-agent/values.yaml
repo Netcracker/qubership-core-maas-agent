@@ -24,4 +24,4 @@ CONSUL_AUTH_FALLBACK_RECHECK_INTERVAL: ''
 
 INTERNAL_SERVICE_NAME: "internal-gateway-service"
 SERVICE_MESH_TYPE: 'Core' # Options: Core, Istio
-KUBERNETES_M2M_ENABLED: false
+M2M_AUTH_MODE: legacy
