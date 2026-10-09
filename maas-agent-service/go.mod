@@ -9,8 +9,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.12.0
 	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.11.0
-	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.9.1-0.20261008091418-4d7c6aa92838
-	github.com/netcracker/qubership-core-lib-go/v3 v3.14.2-0.20261008091147-ba89f20f68cb
+	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.9.1-0.20261009141303-0bccaf586d13
+	github.com/netcracker/qubership-core-lib-go/v3 v3.14.2-0.20261009135009-9700d4cde1b7
 	github.com/stretchr/testify v1.12.1
 	github.com/valyala/fasthttp v1.74.0
 )
@@ -41,9 +41,9 @@ require (
 	github.com/klauspost/compress v1.20.0 // indirect
 	github.com/knadh/koanf/maps v0.1.3 // indirect
 	github.com/knadh/koanf/parsers/yaml v1.1.1 // indirect
-	github.com/knadh/koanf/providers/env/v2 v2.0.1 // indirect
+	github.com/knadh/koanf/providers/env/v2 v2.0.2 // indirect
 	github.com/knadh/koanf/providers/file v1.2.1 // indirect
-	github.com/knadh/koanf/v2 v2.3.7 // indirect
+	github.com/knadh/koanf/v2 v2.3.8 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
