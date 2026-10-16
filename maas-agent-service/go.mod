@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/netcracker/qubership-core-lib-go-actuator-common/v2 v2.12.1
 	github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.11.1
-	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.9.2-0.20261015082609-207b78da0132
+	github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.9.2-0.20261015165206-9166872c2179
 	github.com/netcracker/qubership-core-lib-go/v3 v3.15.0
 	github.com/stretchr/testify v1.12.1
 	github.com/valyala/fasthttp v1.75.0
