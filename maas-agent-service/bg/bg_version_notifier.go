@@ -46,7 +46,7 @@ func subscribeToControlPlaneForVersionChanges(ctx context.Context, httpService m
 
 	var versions model.CpVersionsDto = nil
 	for {
-		conn, resp, err := SecureWebSocketDial(ctx, url, dialer, nil)
+		conn, resp, err := SecureWebSocketDial(ctx, httpService.M2MRequestSender, url, dialer, nil)
 		if err != nil {
 			if conn != nil {
 				conn.Close()

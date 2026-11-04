@@ -10,6 +10,9 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/netcracker/qubership-core-lib-go/v3/security"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
+	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
@@ -95,4 +98,27 @@ func TestBuildRequestDefaultRequestId(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, code)
+}
+
+type fakeTokenProvider struct{ security.DummyToken }
+
+func (fakeTokenProvider) GetToken(ctx context.Context) (string, error) { return "legacy-token", nil }
+
+func TestM2MReqSendsLegacyToken(t *testing.T) {
+	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
+	serviceloader.Register(100, &fakeTokenProvider{})
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer legacy-token" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		fmt.Fprint(w, "ok")
+	}))
+	defer mockServer.Close()
+
+	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, rest.NewM2MRequestSender()).Execute(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Equal(t, "ok", string(body))
 }

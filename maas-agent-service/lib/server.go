@@ -2,7 +2,6 @@ package bin
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 	"os/signal"
@@ -28,6 +27,7 @@ import (
 	constants "github.com/netcracker/qubership-core-lib-go/v3/const"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
 	"github.com/netcracker/qubership-core-lib-go/v3/security"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
 )
 
@@ -91,7 +91,7 @@ func initConfiguration(ctx context.Context) maasservice.MaaSService {
 		},
 	).Register()
 
-	tokenProvider := serviceloader.MustLoad[security.TokenProvider]()
+	m2mSender := rest.NewM2MRequestSender()
 	return maasservice.MaaSService{
 		CpAddr:                     cpAddrUrl,
 		TmAddr:                     tmAddrUrl,
@@ -106,14 +106,9 @@ func initConfiguration(ctx context.Context) maasservice.MaaSService {
 			)
 		},
 		M2MRequestCreator: func(method, url string) *httputils.HttpRequest {
-			return httputils.Req(method, url, func(ctx context.Context) (string, error) {
-				if token, err := tokenProvider.GetToken(ctx); err == nil {
-					return "Bearer " + token, nil
-				} else {
-					return "", fmt.Errorf("error get m2m token: %w", err)
-				}
-			})
+			return httputils.M2MReq(method, url, m2mSender)
 		},
+		M2MRequestSender: m2mSender,
 	}
 }
 
