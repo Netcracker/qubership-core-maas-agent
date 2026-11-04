@@ -51,8 +51,6 @@ func Req(method string, url string, authHeaderProvider func(ctx context.Context)
 	return &HttpRequest{method: method, url: url, headers: http.Header{}, authHeaderProvider: authHeaderProvider}
 }
 
-// M2MReq creates a request authenticated with the M2M token chosen by sender according to M2M_AUTH_MODE.
-// In hybrid mode the request is resent with the legacy M2M token when the receiver answers 401.
 func M2MReq(method string, url string, sender *rest.M2MRequestSender) *HttpRequest {
 	return &HttpRequest{method: method, url: url, headers: http.Header{}, m2mSender: sender}
 }
