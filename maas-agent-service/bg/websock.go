@@ -10,9 +10,6 @@ import (
 	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 )
 
-// SecureWebSocketDial dials webSocketURL with the M2M token chosen by sender according to M2M_AUTH_MODE.
-// In hybrid mode the handshake is retried with the legacy M2M token when the receiver answers 401.
-// Any Authorization value in requestHeaders is replaced with the M2M token.
 func SecureWebSocketDial(ctx context.Context, sender *rest.M2MRequestSender, webSocketURL url.URL, dialer *websocket.Dialer, requestHeaders http.Header) (*websocket.Conn, *http.Response, error) {
 	var conn *websocket.Conn
 	var resp *http.Response
