@@ -2,9 +2,11 @@ package httputils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
@@ -102,7 +104,14 @@ func TestBuildRequestDefaultRequestId(t *testing.T) {
 
 type fakeTokenProvider struct{ security.DummyToken }
 
-func (fakeTokenProvider) GetToken(ctx context.Context) (string, error) { return "legacy-token", nil }
+var tokenError atomic.Pointer[error]
+
+func (fakeTokenProvider) GetToken(ctx context.Context) (string, error) {
+	if err := tokenError.Load(); err != nil {
+		return "", *err
+	}
+	return "legacy-token", nil
+}
 
 func TestM2MReqSendsLegacyToken(t *testing.T) {
 	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
@@ -121,4 +130,77 @@ func TestM2MReqSendsLegacyToken(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, code)
 	assert.Equal(t, "ok", string(body))
+}
+
+func TestM2MReqTokenError(t *testing.T) {
+	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
+	serviceloader.Register(100, &fakeTokenProvider{})
+	sender := rest.NewM2MRequestSender()
+	tokenErr := errors.New("no token")
+	tokenError.Store(&tokenErr)
+	defer tokenError.Store(nil)
+
+	var called atomic.Bool
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { called.Store(true) }))
+	defer mockServer.Close()
+
+	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, sender).Execute(context.Background())
+	assert.ErrorIs(t, err, tokenErr)
+	assert.Equal(t, -1, code)
+	assert.Nil(t, body)
+	assert.False(t, called.Load())
+}
+
+func TestM2MReqNon2xxStatusAndHeaders(t *testing.T) {
+	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
+	serviceloader.Register(100, &fakeTokenProvider{})
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Custom") != "value" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer mockServer.Close()
+
+	code, _, err := M2MReq(fasthttp.MethodPost, mockServer.URL, rest.NewM2MRequestSender()).
+		SetHeader("X-Custom", "value").
+		AddHeader(HEADER_X_REQUEST_ID, "id-1").
+		SetRequestBody(new(string)).
+		Execute(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusForbidden, code)
+}
+
+func TestM2MReqConnectionRefused(t *testing.T) {
+	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
+	serviceloader.Register(100, &fakeTokenProvider{})
+	mockServer := httptest.NewServer(http.NotFoundHandler())
+	mockServer.Close()
+
+	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, rest.NewM2MRequestSender()).Execute(context.Background())
+	assert.Error(t, err)
+	assert.Equal(t, -1, code)
+	assert.Nil(t, body)
+}
+
+func TestReqAuthHeaderProviderError(t *testing.T) {
+	providerErr := errors.New("boom")
+	code, body, err := Req(fasthttp.MethodGet, "http://localhost:1", func(ctx context.Context) (string, error) {
+		return "", providerErr
+	}).Execute(context.Background())
+	assert.ErrorIs(t, err, providerErr)
+	assert.Equal(t, -1, code)
+	assert.Nil(t, body)
+}
+
+func TestReqConnectionRefused(t *testing.T) {
+	mockServer := httptest.NewServer(http.NotFoundHandler())
+	mockServer.Close()
+
+	code, body, err := Req(fasthttp.MethodGet, mockServer.URL, nil).Execute(context.Background())
+	assert.Error(t, err)
+	assert.Equal(t, -1, code)
+	assert.Nil(t, body)
 }
