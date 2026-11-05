@@ -132,7 +132,6 @@ func (c *HttpRequest) do(ctx context.Context, authHeader string) (int, []byte, e
 	}
 
 	if authHeader != "" {
-		log.DebugC(ctx, "Request authorization header is set")
 		req.Header.Set("Authorization", authHeader)
 	}
 
