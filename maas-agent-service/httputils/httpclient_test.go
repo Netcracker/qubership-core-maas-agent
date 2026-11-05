@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/netcracker/qubership-core-lib-go/v3/security"
 	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/tokensource"
 	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
@@ -104,18 +107,87 @@ func TestBuildRequestDefaultRequestId(t *testing.T) {
 
 type fakeTokenProvider struct{ security.DummyToken }
 
-var tokenError atomic.Pointer[error]
+var (
+	tokenError  atomic.Pointer[error]
+	legacyCalls atomic.Int32
+)
 
 func (fakeTokenProvider) GetToken(ctx context.Context) (string, error) {
+	legacyCalls.Add(1)
 	if err := tokenError.Load(); err != nil {
 		return "", *err
 	}
 	return "legacy-token", nil
 }
 
-func TestM2MReqSendsLegacyToken(t *testing.T) {
-	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
+// fakeTokenSource replaces the Kubernetes projected token source of the security library.
+type fakeTokenSource struct{}
+
+var (
+	k8sTokenError atomic.Pointer[error]
+	k8sCalls      atomic.Int32
+)
+
+func (fakeTokenSource) GetAudienceToken(ctx context.Context, audience tokensource.TokenAudience) (string, error) {
+	k8sCalls.Add(1)
+	if err := k8sTokenError.Load(); err != nil {
+		return "", *err
+	}
+	return "k8s-token", nil
+}
+
+func (fakeTokenSource) GetServiceAccountToken(ctx context.Context) (string, error) {
+	return "", errors.New("not supported")
+}
+
+func init() {
 	serviceloader.Register(100, &fakeTokenProvider{})
+	serviceloader.Register(100, &fakeTokenSource{})
+}
+
+// newSender returns a sender for the given M2M_AUTH_MODE with fresh fake tokens.
+func newSender(t *testing.T, mode security.M2MAuthMode) *rest.M2MRequestSender {
+	t.Setenv(security.M2MAuthModeEnv, string(mode))
+	tokenError.Store(nil)
+	k8sTokenError.Store(nil)
+	legacyCalls.Store(0)
+	k8sCalls.Store(0)
+	return rest.NewM2MRequestSender()
+}
+
+type receivedRequest struct {
+	auth string
+	body string
+}
+
+// authServer answers every request with status(auth) and records what it received.
+func authServer(t *testing.T, status func(auth string) int) (*httptest.Server, func() []receivedRequest) {
+	var mu sync.Mutex
+	var received []receivedRequest
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		auth := r.Header.Get("Authorization")
+		mu.Lock()
+		received = append(received, receivedRequest{auth: auth, body: string(body)})
+		mu.Unlock()
+		w.WriteHeader(status(auth))
+	}))
+	t.Cleanup(server.Close)
+	return server, func() []receivedRequest {
+		mu.Lock()
+		defer mu.Unlock()
+		return append([]receivedRequest(nil), received...)
+	}
+}
+
+func k8sOnly(auth string) int {
+	if auth == "Bearer k8s-token" {
+		return http.StatusOK
+	}
+	return http.StatusUnauthorized
+}
+
+func TestM2MReqSendsLegacyToken(t *testing.T) {
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer legacy-token" {
@@ -126,16 +198,14 @@ func TestM2MReqSendsLegacyToken(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, rest.NewM2MRequestSender()).Execute(context.Background())
+	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, newSender(t, security.M2MAuthModeLegacy)).Execute(context.Background())
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, code)
 	assert.Equal(t, "ok", string(body))
 }
 
 func TestM2MReqTokenError(t *testing.T) {
-	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
-	serviceloader.Register(100, &fakeTokenProvider{})
-	sender := rest.NewM2MRequestSender()
+	sender := newSender(t, security.M2MAuthModeLegacy)
 	tokenErr := errors.New("no token")
 	tokenError.Store(&tokenErr)
 	defer tokenError.Store(nil)
@@ -152,8 +222,6 @@ func TestM2MReqTokenError(t *testing.T) {
 }
 
 func TestM2MReqNon2xxStatusAndHeaders(t *testing.T) {
-	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
-	serviceloader.Register(100, &fakeTokenProvider{})
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Custom") != "value" {
@@ -164,7 +232,7 @@ func TestM2MReqNon2xxStatusAndHeaders(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	code, _, err := M2MReq(fasthttp.MethodPost, mockServer.URL, rest.NewM2MRequestSender()).
+	code, _, err := M2MReq(fasthttp.MethodPost, mockServer.URL, newSender(t, security.M2MAuthModeLegacy)).
 		SetHeader("X-Custom", "value").
 		AddHeader(HEADER_X_REQUEST_ID, "id-1").
 		SetRequestBody(new(string)).
@@ -174,12 +242,10 @@ func TestM2MReqNon2xxStatusAndHeaders(t *testing.T) {
 }
 
 func TestM2MReqConnectionRefused(t *testing.T) {
-	t.Setenv(security.M2MAuthModeEnv, string(security.M2MAuthModeLegacy))
-	serviceloader.Register(100, &fakeTokenProvider{})
 	mockServer := httptest.NewServer(http.NotFoundHandler())
 	mockServer.Close()
 
-	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, rest.NewM2MRequestSender()).Execute(context.Background())
+	code, body, err := M2MReq(fasthttp.MethodGet, mockServer.URL, newSender(t, security.M2MAuthModeLegacy)).Execute(context.Background())
 	assert.Error(t, err)
 	assert.Equal(t, -1, code)
 	assert.Nil(t, body)
@@ -203,4 +269,105 @@ func TestReqConnectionRefused(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, -1, code)
 	assert.Nil(t, body)
+}
+
+func execPost(sender *rest.M2MRequestSender, url string) (int, error) {
+	body := "payload"
+	code, _, err := M2MReq(fasthttp.MethodPost, url, sender).SetRequestBody(&body).Execute(context.Background())
+	return code, err
+}
+
+func TestM2MReqK8sModeSendsOnlyK8sToken(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeK8s)
+	server, received := authServer(t, k8sOnly)
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Equal(t, []receivedRequest{{auth: "Bearer k8s-token", body: "payload"}}, received())
+	assert.Zero(t, legacyCalls.Load(), "k8s mode must not read the legacy token")
+}
+
+func TestM2MReqK8sModeDoesNotFallBackOn401(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeK8s)
+	server, received := authServer(t, func(string) int { return http.StatusUnauthorized })
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, code)
+	assert.Len(t, received(), 1)
+	assert.Zero(t, legacyCalls.Load())
+}
+
+func TestM2MReqK8sModeTokenError(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeK8s)
+	tokenErr := errors.New("no k8s token")
+	k8sTokenError.Store(&tokenErr)
+	server, received := authServer(t, k8sOnly)
+
+	code, err := execPost(sender, server.URL)
+	assert.ErrorIs(t, err, tokenErr)
+	assert.Equal(t, -1, code)
+	assert.Empty(t, received())
+	assert.Zero(t, legacyCalls.Load(), "k8s mode must not fall back to the legacy token")
+}
+
+func TestM2MReqHybridModeSendsK8sToken(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeHybrid)
+	server, received := authServer(t, k8sOnly)
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Equal(t, []receivedRequest{{auth: "Bearer k8s-token", body: "payload"}}, received())
+	assert.Zero(t, legacyCalls.Load())
+}
+
+func TestM2MReqHybridModeResendsWithLegacyTokenOn401(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeHybrid)
+	// the receiver only knows the legacy token
+	server, received := authServer(t, func(auth string) int {
+		if auth == "Bearer legacy-token" {
+			return http.StatusOK
+		}
+		return http.StatusUnauthorized
+	})
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	// the request body must be sent again on the second attempt
+	assert.Equal(t, []receivedRequest{
+		{auth: "Bearer k8s-token", body: "payload"},
+		{auth: "Bearer legacy-token", body: "payload"},
+	}, received())
+
+	// the sender remembers that the target only accepts the legacy token
+	code, err = execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Len(t, received(), 3)
+	assert.Equal(t, "Bearer legacy-token", received()[2].auth)
+}
+
+func TestM2MReqHybridModeFallsBackWhenK8sTokenUnavailable(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeHybrid)
+	tokenErr := errors.New("no k8s token")
+	k8sTokenError.Store(&tokenErr)
+	server, received := authServer(t, func(string) int { return http.StatusOK })
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Equal(t, []receivedRequest{{auth: "Bearer legacy-token", body: "payload"}}, received())
+}
+
+func TestM2MReqHybridModeBothTokensRejected(t *testing.T) {
+	sender := newSender(t, security.M2MAuthModeHybrid)
+	server, received := authServer(t, func(string) int { return http.StatusUnauthorized })
+
+	code, err := execPost(sender, server.URL)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusUnauthorized, code)
+	assert.Len(t, received(), 2)
 }

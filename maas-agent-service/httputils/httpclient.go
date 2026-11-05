@@ -132,7 +132,7 @@ func (c *HttpRequest) do(ctx context.Context, authHeader string) (int, []byte, e
 	}
 
 	if authHeader != "" {
-		log.DebugC(ctx, "Request authorization: %v", authHeader)
+		log.DebugC(ctx, "Request authorization header is set")
 		req.Header.Set("Authorization", authHeader)
 	}
 
@@ -140,7 +140,7 @@ func (c *HttpRequest) do(ctx context.Context, authHeader string) (int, []byte, e
 	defer fasthttp.ReleaseResponse(resp)
 
 	log.InfoC(ctx, "Execute request: %+v", c)
-	log.DebugC(ctx, "Underlying client: %+v", req)
+	log.DebugC(ctx, "Underlying client: %s %s", req.Header.Method(), req.RequestURI())
 	err := fasthttpClient.Do(req, resp)
 	log.DebugC(ctx, "Response: %v", resp)
 
