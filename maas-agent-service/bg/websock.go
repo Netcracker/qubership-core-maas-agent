@@ -2,33 +2,50 @@ package bg
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"net/url"
 
 	"github.com/fasthttp/websocket"
 
-	"github.com/netcracker/qubership-core-lib-go/v3/security"
-	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 )
 
-func SecureWebSocketDial(ctx context.Context, webSocketURL url.URL, dialer *websocket.Dialer, requestHeaders http.Header) (*websocket.Conn, *http.Response, error) {
-	tokenProvider := serviceloader.MustLoad[security.TokenProvider]()
-	m2mToken, err := tokenProvider.GetToken(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Can't get m2m token: %w", err)
+func SecureWebSocketDial(ctx context.Context, sender *rest.M2MRequestSender, webSocketURL url.URL, dialer *websocket.Dialer, requestHeaders http.Header) (*websocket.Conn, *http.Response, error) {
+	var conn *websocket.Conn
+	var resp *http.Response
+	var dialErr error
+	err := sender.Send(ctx, webSocketURL.String(), func(token string) (int, error) {
+		// the response of a rejected handshake (e.g. 401 for the Kubernetes token) stays open until it is replaced
+		closeResponse(resp)
+		conn, resp = nil, nil
+
+		headers := requestHeaders.Clone()
+		if headers == nil {
+			headers = http.Header{}
+		}
+		if headers.Get("Host") == "" {
+			headers.Set("Host", webSocketURL.Host)
+		}
+		headers.Set("Authorization", "Bearer "+token)
+
+		conn, resp, dialErr = dialer.DialContext(ctx, webSocketURL.String(), headers)
+		if resp != nil {
+			return resp.StatusCode, dialErr
+		}
+		return 0, dialErr
+	})
+	if err != nil && !errors.Is(err, dialErr) {
+		// the sender failed before the last dial, e.g. it could not read the legacy token after a 401, so
+		// the response of the previous attempt is stale
+		closeResponse(resp)
+		conn, resp = nil, nil
 	}
-	if requestHeaders == nil {
-		requestHeaders = http.Header{}
-	}
-	requestHeaders = addHeaderIfAbsent(ctx, requestHeaders, "Host", webSocketURL.Host)
-	requestHeaders = addHeaderIfAbsent(ctx, requestHeaders, "Authorization", "Bearer "+m2mToken)
-	return dialer.DialContext(ctx, webSocketURL.String(), requestHeaders)
+	return conn, resp, err
 }
 
-func addHeaderIfAbsent(ctx context.Context, requestHeaders http.Header, headerName, headerValue string) http.Header {
-	if _, ok := requestHeaders[headerName]; !ok {
-		requestHeaders.Add(headerName, headerValue)
+func closeResponse(resp *http.Response) {
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
 	}
-	return requestHeaders
 }

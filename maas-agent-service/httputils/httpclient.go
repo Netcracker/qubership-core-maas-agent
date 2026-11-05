@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/netcracker/qubership-core-lib-go/v3/context-propagation/ctxhelper"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 	tlsUtils "github.com/netcracker/qubership-core-lib-go/v3/utils"
 	"github.com/valyala/fasthttp"
 )
@@ -39,6 +40,7 @@ type HttpRequest struct {
 	requestBody        *string
 	requestBodyBytes   []byte
 	authHeaderProvider func(ctx context.Context) (string, error)
+	m2mSender          *rest.M2MRequestSender
 }
 
 func (c HttpRequest) String() string {
@@ -47,6 +49,10 @@ func (c HttpRequest) String() string {
 
 func Req(method string, url string, authHeaderProvider func(ctx context.Context) (string, error)) *HttpRequest {
 	return &HttpRequest{method: method, url: url, headers: http.Header{}, authHeaderProvider: authHeaderProvider}
+}
+
+func M2MReq(method string, url string, sender *rest.M2MRequestSender) *HttpRequest {
+	return &HttpRequest{method: method, url: url, headers: http.Header{}, m2mSender: sender}
 }
 
 func (c *HttpRequest) SetRequestBody(body *string) *HttpRequest {
@@ -70,6 +76,42 @@ func (c *HttpRequest) AddHeader(name string, value string) *HttpRequest {
 }
 
 func (c *HttpRequest) Execute(ctx context.Context) (code int, body []byte, err error) {
+	if err := ctxhelper.AddSerializableContextData(ctx, c.headers.Add); err != nil {
+		return -1, nil, fmt.Errorf("cannot add context data: %w", err)
+	}
+
+	if c.headers.Get(HEADER_X_REQUEST_ID) == "" {
+		requestId := uuid.New().String()
+		log.WarnC(ctx, "No request id is set. Create new one: %s", requestId)
+		c.headers.Add(HEADER_X_REQUEST_ID, requestId)
+	}
+
+	if c.m2mSender != nil {
+		err = c.m2mSender.Send(ctx, c.url, func(token string) (int, error) {
+			var sendErr error
+			code, body, sendErr = c.do(ctx, "Bearer "+token)
+			if sendErr != nil {
+				return 0, sendErr
+			}
+			return code, nil
+		})
+		if err != nil {
+			return -1, nil, err
+		}
+		return code, body, nil
+	}
+
+	authHeader := ""
+	if c.authHeaderProvider != nil {
+		authHeader, err = c.authHeaderProvider(ctx)
+		if err != nil {
+			return -1, nil, fmt.Errorf("error getting auth header: %w", err)
+		}
+	}
+	return c.do(ctx, authHeader)
+}
+
+func (c *HttpRequest) do(ctx context.Context, authHeader string) (int, []byte, error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
@@ -83,46 +125,29 @@ func (c *HttpRequest) Execute(ctx context.Context) (code int, body []byte, err e
 		req.SetBody(c.requestBodyBytes)
 	}
 
-	if err := ctxhelper.AddSerializableContextData(ctx, c.headers.Add); err != nil {
-		return -1, nil, fmt.Errorf("cannot add context data: %w", err)
-	}
-
-	if c.headers.Get(HEADER_X_REQUEST_ID) == "" {
-		requestId := uuid.New().String()
-		log.WarnC(ctx, "No request id is set. Create new one: %s", requestId)
-		c.headers.Add(HEADER_X_REQUEST_ID, requestId)
-	}
-
 	for name := range c.headers {
 		for _, value := range c.headers.Values(name) {
 			req.Header.Add(name, value)
 		}
 	}
 
-	if c.authHeaderProvider != nil {
-		headerValue, err := c.authHeaderProvider(ctx)
-		if err != nil {
-			return -1, nil, fmt.Errorf("error getting M2M token: %w", err)
-		}
-
-		log.DebugC(ctx, "Request authorization: %v", headerValue)
-		req.Header.Set("Authorization", headerValue)
+	if authHeader != "" {
+		req.Header.Set("Authorization", authHeader)
 	}
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
 	log.InfoC(ctx, "Execute request: %+v", c)
-	log.DebugC(ctx, "Underlying client: %+v", req)
-	err = fasthttpClient.Do(req, resp)
-	log.DebugC(ctx, "Response: %v", req)
+	err := fasthttpClient.Do(req, resp)
+	log.DebugC(ctx, "Response status code: %d", resp.StatusCode())
 
 	if err != nil {
 		log.ErrorC(ctx, "Error execute http request: %v", err)
 		return -1, nil, err
 	}
 
-	body = make([]byte, len(resp.Body()))
+	body := make([]byte, len(resp.Body()))
 	copy(body, resp.Body())
 
 	return resp.StatusCode(), body, nil
