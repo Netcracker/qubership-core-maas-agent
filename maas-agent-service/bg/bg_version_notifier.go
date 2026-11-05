@@ -11,6 +11,7 @@ import (
 
 	"github.com/fasthttp/websocket"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 	tlsUtils "github.com/netcracker/qubership-core-lib-go/v3/utils"
 )
 
@@ -21,13 +22,13 @@ var logger = logging.GetLogger("bg-sync")
 // SubscribeToControlPlaneWatcher
 //
 //	maas-agent subscribes to control-plane blue-green versions web-socket and sending changes to maas
-func SubscribeToControlPlaneWatcher(ctx context.Context, httpService maasservice.MaaSService) {
+func SubscribeToControlPlaneWatcher(ctx context.Context, httpService maasservice.MaaSService, m2mSender *rest.M2MRequestSender) {
 	ch := make(chan model.CpVersionsDto)
-	go subscribeToControlPlaneForVersionChanges(ctx, httpService, ch)
+	go subscribeToControlPlaneForVersionChanges(ctx, httpService, m2mSender, ch)
 	go notifyMaasAboutVersionChanges(ctx, httpService, ch)
 }
 
-func subscribeToControlPlaneForVersionChanges(ctx context.Context, httpService maasservice.MaaSService, ch chan<- model.CpVersionsDto) {
+func subscribeToControlPlaneForVersionChanges(ctx context.Context, httpService maasservice.MaaSService, m2mSender *rest.M2MRequestSender, ch chan<- model.CpVersionsDto) {
 	dialer := &websocket.Dialer{
 		Proxy:            http.ProxyFromEnvironment,
 		HandshakeTimeout: 45 * time.Second,
@@ -46,7 +47,7 @@ func subscribeToControlPlaneForVersionChanges(ctx context.Context, httpService m
 
 	var versions model.CpVersionsDto = nil
 	for {
-		conn, resp, err := SecureWebSocketDial(ctx, url, dialer, nil)
+		conn, resp, err := SecureWebSocketDial(ctx, m2mSender, url, dialer, nil)
 		if err != nil {
 			if conn != nil {
 				conn.Close()

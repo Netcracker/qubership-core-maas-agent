@@ -2,7 +2,6 @@ package bin
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 	"os/signal"
@@ -28,6 +27,7 @@ import (
 	constants "github.com/netcracker/qubership-core-lib-go/v3/const"
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
 	"github.com/netcracker/qubership-core-lib-go/v3/security"
+	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 	"github.com/netcracker/qubership-core-lib-go/v3/serviceloader"
 )
 
@@ -46,7 +46,7 @@ func init() {
 	consul.StartWatchingForPropertiesWithRetry(context.Background(), consulPS, func(event interface{}, err error) {})
 }
 
-func initConfiguration(ctx context.Context) maasservice.MaaSService {
+func initConfiguration(ctx context.Context, m2mSender *rest.M2MRequestSender) maasservice.MaaSService {
 	serviceName := configloader.GetKoanf().MustString("microservice.name")
 	namespace := configloader.GetKoanf().MustString("microservice.namespace")
 
@@ -91,7 +91,6 @@ func initConfiguration(ctx context.Context) maasservice.MaaSService {
 		},
 	).Register()
 
-	tokenProvider := serviceloader.MustLoad[security.TokenProvider]()
 	return maasservice.MaaSService{
 		CpAddr:                     cpAddrUrl,
 		TmAddr:                     tmAddrUrl,
@@ -106,13 +105,7 @@ func initConfiguration(ctx context.Context) maasservice.MaaSService {
 			)
 		},
 		M2MRequestCreator: func(method, url string) *httputils.HttpRequest {
-			return httputils.Req(method, url, func(ctx context.Context) (string, error) {
-				if token, err := tokenProvider.GetToken(ctx); err == nil {
-					return "Bearer " + token, nil
-				} else {
-					return "", fmt.Errorf("error get m2m token: %w", err)
-				}
-			})
+			return httputils.M2MReq(method, url, m2mSender)
 		},
 	}
 }
@@ -133,7 +126,8 @@ func RunServer() {
 		podSecretsWatcherStop = podSecretsWatcher.Stop
 	}
 
-	maasService := initConfiguration(ctx)
+	m2mSender := rest.NewM2MRequestSender()
+	maasService := initConfiguration(ctx, m2mSender)
 	healthService, err := health.NewHealthService()
 	if err != nil {
 		logger.PanicC(ctx, "Couldn't create healthService")
@@ -163,7 +157,7 @@ func RunServer() {
 		// disaster recovery check
 		if maasService.DrMode == "active" {
 			logger.InfoC(ctx, "Starting in normal proxy mode to mass: %s", maasService.MaasAddr)
-			go bg.SubscribeToControlPlaneWatcher(ctx, maasService)
+			go bg.SubscribeToControlPlaneWatcher(ctx, maasService, m2mSender)
 			go maasService.SynchronizeTenantsToMaaS(ctx)
 		} else {
 			logger.WarnC(ctx, "Disaster recovery mode is not 'active', but '%s'. Not sending "+
