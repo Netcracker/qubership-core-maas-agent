@@ -14,7 +14,7 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/internal/m2mtest"
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/netcracker/qubership-core-lib-go/v3/security"
 	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 	"github.com/stretchr/testify/assert"
