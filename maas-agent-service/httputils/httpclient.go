@@ -139,9 +139,8 @@ func (c *HttpRequest) do(ctx context.Context, authHeader string) (int, []byte, e
 	defer fasthttp.ReleaseResponse(resp)
 
 	log.InfoC(ctx, "Execute request: %+v", c)
-	log.DebugC(ctx, "Underlying client: %s %s", req.Header.Method(), req.RequestURI())
 	err := fasthttpClient.Do(req, resp)
-	log.DebugC(ctx, "Response: %v", resp)
+	log.DebugC(ctx, "Response status code: %d", resp.StatusCode())
 
 	if err != nil {
 		log.ErrorC(ctx, "Error execute http request: %v", err)

@@ -13,7 +13,6 @@ import (
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 
 	"github.com/netcracker/qubership-core-lib-go/v3/logging"
-	"github.com/netcracker/qubership-core-lib-go/v3/security/rest"
 )
 
 const MAAS_BG_STATUS_API = "/api/v1/bg-status"
@@ -27,7 +26,6 @@ type MaaSService struct {
 	Namespace                  string
 	BasicRequestCreator        func(method, url string) *httputils.HttpRequest
 	M2MRequestCreator          func(method, url string) *httputils.HttpRequest
-	M2MRequestSender           *rest.M2MRequestSender
 	DrMode                     string
 	CompositeIsolationDisabled bool
 }
