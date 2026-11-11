@@ -178,6 +178,8 @@ github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.11.4 h1:vQN
 github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2 v2.11.4/go.mod h1:7EPW64vy+gguIA7XBwJn3vuUItmxM2y5iGf/pBM9IHw=
 github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.11.0 h1:rkKyfkgm2eJfHxMV57lUeW9k3Veo2U4cuFb0jAPJigE=
 github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.11.0/go.mod h1:RJvHoMW8mzRetleQQR0OqwcV8JP55GN0YaI64gLgSf8=
+github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.11.1-0.20261110134416-a2e71af3f20f h1:0TzzV1eL+hU1g3qulS98qwfA5Uf0iF4O+ljw2/nSPlA=
+github.com/netcracker/qubership-core-lib-go-rest-utils/v2 v2.11.1-0.20261110134416-a2e71af3f20f/go.mod h1:RJvHoMW8mzRetleQQR0OqwcV8JP55GN0YaI64gLgSf8=
 github.com/netcracker/qubership-core-lib-go/v3 v3.15.3 h1:Vnbltz1TPtDrRq5oHib75Ry4/rwQE5DSPSa38qc1x/g=
 github.com/netcracker/qubership-core-lib-go/v3 v3.15.3/go.mod h1:MGbMUoPz1vPVru5YZ4U64Q3GdPJLgHY+81y4aU79AXc=
 github.com/openzipkin/zipkin-go v0.4.3 h1:9EGwpqkgnwdEIJ+Od7QVSEIH+ocmm5nPat0G7sjsSdg=
