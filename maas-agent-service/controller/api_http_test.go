@@ -10,9 +10,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	jwt "github.com/golang-jwt/jwt/v5"
-	fiberserver "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v2"
+	fiberserver "github.com/netcracker/qubership-core-lib-go-fiber-server-utils/v3"
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/httputils"
 	"github.com/netcracker/qubership-core-maas-agent/maas-agent-service/v2/model"
 	"github.com/stretchr/testify/assert"
@@ -101,7 +101,7 @@ func newHttpApp(t *testing.T, upstream *recordingUpstream) *fiber.App {
 
 func send(t *testing.T, app *fiber.App, req *http.Request) (int, string, string) {
 	t.Helper()
-	resp, err := app.Test(req, -1)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 0})
 	require.NoError(t, err, "%s %s", req.Method, req.RequestURI)
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
