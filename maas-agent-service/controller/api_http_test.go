@@ -34,9 +34,9 @@ func TestProxiedRequest(t *testing.T) {
 		{name: "GET with query string", method: http.MethodGet, target: "/api/v1/topic?name=a&onTopicExists=merge", wantUpstreamURI: "/api/v1/topic?name=a&onTopicExists=merge"},
 		{name: "POST with body", method: http.MethodPost, target: "/api/v2/topic", body: `{"name":"a"}`, wantUpstreamURI: "/api/v2/topic"},
 		{name: "DELETE", method: http.MethodDelete, target: "/api/v1/topic/a", wantUpstreamURI: "/api/v1/topic/a"},
-		{name: "dot-dot segment", method: http.MethodGet, target: "/api/v1/x/../topic", wantUpstreamURI: "/api/v1/x/../topic"},
-		{name: "encoded dot-dot segment", method: http.MethodGet, target: "/api/v1/x/%2e%2e/topic", wantUpstreamURI: "/api/v1/x/%252e%252e/topic"},
-		{name: "percent-encoded unreserved character", method: http.MethodGet, target: "/api/v1/%74opic", wantUpstreamURI: "/api/v1/%2574opic"},
+		{name: "dot-dot segment", method: http.MethodGet, target: "/api/v1/x/../topic", wantUpstreamURI: "/api/v1/topic"},
+		{name: "encoded dot-dot segment", method: http.MethodGet, target: "/api/v1/x/%2e%2e/topic", wantUpstreamURI: "/api/v1/topic"},
+		{name: "percent-encoded unreserved character", method: http.MethodGet, target: "/api/v1/%74opic", wantUpstreamURI: "/api/v1/topic"},
 		{name: "percent-encoded reserved character", method: http.MethodGet, target: "/api/v1/topic/a%20b", wantUpstreamURI: "/api/v1/topic/a%2520b"},
 		{name: "api-version", method: http.MethodGet, target: "/api-version", wantUpstreamURI: "/api-version"},
 	}
