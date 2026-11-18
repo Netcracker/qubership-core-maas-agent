@@ -11,11 +11,12 @@ metadata:
     app.kubernetes.io/part-of: Cloud-Core
     app.kubernetes.io/managed-by: saasDeployer
     app.kubernetes.io/processed-by-operator: victoriametrics-operator
+    deployment.netcracker.com/sessionId: '{{ .Values.DEPLOYMENT_SESSION_ID }}'
 spec:
   podMetricsEndpoints:
     - interval: 30s
-      port: web
-      scheme: http
+      port: {{ if .Values.INTERNAL_TLS_ENABLED }} tls {{ else }} web {{ end }}
+      scheme: {{ if .Values.INTERNAL_TLS_ENABLED }} https {{ else }} http {{ end }}
       path: "/prometheus"
   jobLabel: k8s-app
   namespaceSelector:

@@ -16,6 +16,7 @@ spec:
     - kind: Service
       name: {{ .Values.INTERNAL_SERVICE_NAME }}
       group: ""
+      port: 8080
   rules:
     - matches:
       - path:

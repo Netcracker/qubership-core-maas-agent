@@ -1,0 +1,12 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+    name: "{{ .Values.SERVICE_NAME }}.monitoring-config"
+    labels:
+      app.kubernetes.io/part-of: 'Cloud-Core'
+      app.kubernetes.io/managed-by: 'saasDeployer'
+      deployment.netcracker.com/sessionId: '{{ .Values.DEPLOYMENT_SESSION_ID }}'
+data:
+    url.health: {{ if .Values.INTERNAL_TLS_ENABLED }} https://%(ip)s:8443/health {{ else }} http://%(ip)s:8080/health {{ end }}
+    prometheus.url.metrics: {{ if .Values.INTERNAL_TLS_ENABLED }} https://%(ip)s:8443/prometheus {{ else }} http://%(ip)s:8080/prometheus {{ end }}
