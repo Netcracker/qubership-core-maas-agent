@@ -13,7 +13,7 @@ ARG GOPROXY=https://proxy.golang.org,direct
 ARG GOSUMDB=sum.golang.org
 ENV CGO_ENABLED=0 GOTOOLCHAIN=local GOFLAGS=-p=2 GOMAXPROCS=2 GOMEMLIMIT=1GiB
 
-WORKDIR /src/source/maas-agent-service
+WORKDIR /src/${SOURCE_DIR}/maas-agent-service
 COPY ${SOURCE_DIR}/maas-agent-service/ .
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,id=maas-agent-go-build,target=/root/.cache/go-build \
