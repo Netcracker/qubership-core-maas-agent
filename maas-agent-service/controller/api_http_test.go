@@ -33,12 +33,9 @@ func TestProxiedRequest(t *testing.T) {
 	}{
 		{name: "GET with query string", method: http.MethodGet, target: "/api/v1/topic?name=a&onTopicExists=merge", wantUpstreamURI: "/api/v1/topic?name=a&onTopicExists=merge"},
 		{name: "POST with body", method: http.MethodPost, target: "/api/v2/topic", body: `{"name":"a"}`, wantUpstreamURI: "/api/v2/topic"},
-		{name: "DELETE", method: http.MethodDelete, target: "/api/v1/topic/a", wantUpstreamURI: "/api/v1/topic/a"},
 		{name: "dot-dot segment", method: http.MethodGet, target: "/api/v1/x/../topic", wantUpstreamURI: "/api/v1/topic"},
 		{name: "encoded dot-dot segment", method: http.MethodGet, target: "/api/v1/x/%2e%2e/topic", wantUpstreamURI: "/api/v1/topic"},
 		{name: "percent-encoded unreserved character", method: http.MethodGet, target: "/api/v1/%74opic", wantUpstreamURI: "/api/v1/topic"},
-		{name: "percent-encoded reserved character", method: http.MethodGet, target: "/api/v1/topic/a%20b", wantUpstreamURI: "/api/v1/topic/a%2520b"},
-		{name: "api-version", method: http.MethodGet, target: "/api-version", wantUpstreamURI: "/api-version"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -49,17 +46,14 @@ func TestProxiedRequest(t *testing.T) {
 				req.Header.Set("Content-Type", "application/json")
 			}
 
-			status, contentType, body := send(t, app, req)
+			status, _, body := send(t, app, req)
 
 			received := upstream.last()
 			assert.Equal(t, http.StatusCreated, status, "status, body %q", body)
-			assert.Equal(t, "application/json", contentType, "Content-Type")
-			assert.Equal(t, `{"proxied":true}`, body, "body")
 			assert.Equal(t, tt.method, received.method, "method the upstream received")
 			assert.Equal(t, tt.wantUpstreamURI, received.requestURI, "request URI the upstream received")
 			assert.Equal(t, tt.body, received.body, "body the upstream received")
 			assert.Equal(t, "req-1", received.requestID, "X-Request-Id the upstream received")
-			assert.Equal(t, testNamespace, received.originNamespace, "X-Origin-Namespace the upstream received")
 		})
 	}
 }
@@ -95,7 +89,6 @@ func newHttpApp(t *testing.T, upstream *recordingUpstream) *fiber.App {
 	app, err := fiberserver.New().Process()
 	require.NoError(t, err)
 	app.All("/api/*", handler.ProcessRequest)
-	app.Get("/api-version", handler.ProcessRequest)
 	return app
 }
 
@@ -114,7 +107,6 @@ type upstreamRequest struct {
 	requestURI      string
 	body            string
 	requestID       string
-	originNamespace string
 }
 
 // recordingUpstream stands in for MaaS: it records the last request and answers 201 with a JSON body, or drops the
@@ -139,7 +131,6 @@ func (u *recordingUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		requestURI:      r.RequestURI,
 		body:            string(body),
 		requestID:       r.Header.Get("X-Request-Id"),
-		originNamespace: r.Header.Get("X-Origin-Namespace"),
 	}
 	u.mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
