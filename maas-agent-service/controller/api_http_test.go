@@ -71,7 +71,7 @@ func TestProxyErrorResponse(t *testing.T) {
 	assert.True(t, strings.HasPrefix(response["error"], "error proxying request: "), "error %q", response["error"])
 }
 
-// newHttpApp registers ProcessRequest on the route patterns the service uses, proxying to a stand-in for MaaS.
+// newHttpApp registers ProcessRequest on /api/*, the route pattern the service proxies, with a stand-in for MaaS behind it.
 func newHttpApp(t *testing.T, upstream *recordingUpstream) *fiber.App {
 	t.Helper()
 	upstreamServer := httptest.NewServer(upstream)
@@ -103,10 +103,10 @@ func send(t *testing.T, app *fiber.App, req *http.Request) (int, string, string)
 }
 
 type upstreamRequest struct {
-	method          string
-	requestURI      string
-	body            string
-	requestID       string
+	method     string
+	requestURI string
+	body       string
+	requestID  string
 }
 
 // recordingUpstream stands in for MaaS: it records the last request and answers 201 with a JSON body, or drops the
@@ -127,10 +127,10 @@ func (u *recordingUpstream) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	u.mu.Lock()
 	u.request = upstreamRequest{
-		method:          r.Method,
-		requestURI:      r.RequestURI,
-		body:            string(body),
-		requestID:       r.Header.Get("X-Request-Id"),
+		method:     r.Method,
+		requestURI: r.RequestURI,
+		body:       string(body),
+		requestID:  r.Header.Get("X-Request-Id"),
 	}
 	u.mu.Unlock()
 	w.Header().Set("Content-Type", "application/json")
