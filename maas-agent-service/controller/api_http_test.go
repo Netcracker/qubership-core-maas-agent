@@ -71,7 +71,7 @@ func TestProxyErrorResponse(t *testing.T) {
 	assert.True(t, strings.HasPrefix(response["error"], "error proxying request: "), "error %q", response["error"])
 }
 
-// newHttpApp registers ProcessRequest on /api/*, the route pattern the service proxies, with a stand-in for MaaS behind it.
+// newHttpApp registers ProcessRequest on /api/*, as the service does, with a stand-in for MaaS behind it.
 func newHttpApp(t *testing.T, upstream *recordingUpstream) *fiber.App {
 	t.Helper()
 	upstreamServer := httptest.NewServer(upstream)
