@@ -14,7 +14,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o app
 
 
-FROM ghcr.io/netcracker/qubership-core-base:alpine-2.5.14@sha256:0359b4d0a324071dc4049866a868d901be9f0665fcb97e4f5f6f937d94930001
+FROM ghcr.io/netcracker/qubership-core-base:alpine-2.5.15@sha256:a3af3751d9187ce7f8ffd67a5aa8465fee78056c79f964bfa7727ea00da681da
 
 COPY --from=builder --chown=10001:0 --chmod=755 /src/maas-agent-service/app /app/maas-agent
 COPY --chown=10001:0 maas-agent-service/application.yaml /app/
