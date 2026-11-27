@@ -1,6 +1,8 @@
 name: Cleanup old Docker images
 
 on:
+  schedule:
+    - cron: "0 0 * * 0"
   workflow_dispatch:
     inputs:
       dry-run:
@@ -19,7 +21,7 @@ jobs:
     permissions: {}
     uses: Netcracker/qubership-core-infra/.github/workflows/docker-cleanup.yaml@270d0e6b9b8a440f2dba064ccc6d67f7635cf9e9 # feat/docker-cleanup-poc
     with:
-      dry-run: ${{ inputs.dry-run }}
-      debug: ${{ inputs.debug }}
+      dry-run: ${{ inputs.dry-run == true }}
+      debug: ${{ inputs.debug == true }}
     secrets:
       GH_RWD_PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}
