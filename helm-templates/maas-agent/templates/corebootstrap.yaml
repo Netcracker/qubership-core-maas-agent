@@ -1,1 +1,2 @@
 {{ include "coretpl.synchronizer.hooks" . }}
+{{ include "coretpl.bootstrap.hooks" (dict "values" .) }}
